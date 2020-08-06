@@ -1,17 +1,19 @@
-import 'package:flutter/foundation.dart';
-import 'package:flutter/material.dart';
 import 'dart:async';
-
-import 'package:shared_preferences/shared_preferences.dart';
-import 'package:flutter_background_geolocation/flutter_background_geolocation.dart' as bg;
-import '../app.dart';
-import '../config/ENV.dart';
-
 ////
 // For pretty-printing locations as JSON
 // @see _onLocation
 //
 import 'dart:convert';
+
+import 'package:flutter/foundation.dart';
+import 'package:flutter/material.dart';
+import 'package:flutter_background_geolocation/flutter_background_geolocation.dart'
+    as bg;
+import 'package:shared_preferences/shared_preferences.dart';
+
+import '../app.dart';
+import '../config/ENV.dart';
+
 JsonEncoder encoder = new JsonEncoder.withIndent("     ");
 
 class HelloWorldApp extends StatelessWidget {
@@ -25,13 +27,9 @@ class HelloWorldApp extends StatelessWidget {
       theme: Theme.of(context).copyWith(
           accentColor: Colors.black,
           bottomAppBarColor: Colors.amberAccent,
-          primaryTextTheme: Theme
-              .of(context)
-              .primaryTextTheme
-              .apply(
-            bodyColor: Colors.black,
-          )
-      ),
+          primaryTextTheme: Theme.of(context).primaryTextTheme.apply(
+                bodyColor: Colors.black,
+              )),
       home: new HelloWorldPage(),
     );
   }
@@ -76,7 +74,9 @@ class _HelloWorldPageState extends State<HelloWorldPage> {
     }
 
     // Fetch a Transistor demo server Authorization token for tracker.transistorsoft.com.
-    bg.TransistorAuthorizationToken token = await bg.TransistorAuthorizationToken.findOrCreate(orgname, username, ENV.TRACKER_HOST);
+    bg.TransistorAuthorizationToken token =
+        await bg.TransistorAuthorizationToken.findOrCreate(
+            orgname, username, ENV.TRACKER_HOST);
 
     // 1.  Listen to events (See docs for all 12 available events).
     bg.BackgroundGeolocation.onLocation(_onLocation, _onLocationError);
@@ -89,26 +89,24 @@ class _HelloWorldPageState extends State<HelloWorldPage> {
 
     // 2.  Configure the plugin
     bg.BackgroundGeolocation.ready(bg.Config(
-        reset: true,
-        debug: true,
-        logLevel: bg.Config.LOG_LEVEL_VERBOSE,
-        desiredAccuracy: bg.Config.DESIRED_ACCURACY_HIGH,
-        distanceFilter: 10.0,
-        url: "${ENV.TRACKER_HOST}/api/locations",
-        authorization: bg.Authorization(  // <-- demo server authenticates with JWT
-          strategy: bg.Authorization.STRATEGY_JWT,
-          accessToken: token.accessToken,
-          refreshToken: token.refreshToken,
-          refreshUrl: "${ENV.TRACKER_HOST}/api/refresh_token",
-          refreshPayload: {
-            'refresh_token': '{refreshToken}'
-          }
-        ),
-        encrypt: false,
-        stopOnTerminate: false,
-        startOnBoot: true,
-        enableHeadless: true
-    )).then((bg.State state) {
+            reset: true,
+            debug: true,
+            logLevel: bg.Config.LOG_LEVEL_VERBOSE,
+            desiredAccuracy: bg.Config.DESIRED_ACCURACY_HIGH,
+            distanceFilter: 10.0,
+            url: "${ENV.TRACKER_HOST}/api/locations",
+            authorization: bg.Authorization(
+                // <-- demo server authenticates with JWT
+                strategy: bg.Authorization.STRATEGY_JWT,
+                accessToken: token.accessToken,
+                refreshToken: token.refreshToken,
+                refreshUrl: "${ENV.TRACKER_HOST}/api/refresh_token",
+                refreshPayload: {'refresh_token': '{refreshToken}'}),
+            encrypt: false,
+            stopOnTerminate: false,
+            startOnBoot: true,
+            enableHeadless: true))
+        .then((bg.State state) {
       print("[ready] ${state.toMap()}");
       setState(() {
         _enabled = state.enabled;
@@ -160,11 +158,12 @@ class _HelloWorldPageState extends State<HelloWorldPage> {
   // Manually fetch the current position.
   void _onClickGetCurrentPosition() {
     bg.BackgroundGeolocation.getCurrentPosition(
-        persist: true,      // <-- do persist this location
-        desiredAccuracy: 0, // <-- desire best possible accuracy
-        timeout: 30000,     // <-- wait 30s before giving up.
-        samples: 3          // <-- sample 3 location before selecting best.
-    ).then((bg.Location location) {
+            persist: true, // <-- do persist this location
+            desiredAccuracy: 0, // <-- desire best possible accuracy
+            timeout: 30000, // <-- wait 30s before giving up.
+            samples: 3 // <-- sample 3 location before selecting best.
+            )
+        .then((bg.Location location) {
       print('[getCurrentPosition] - $location');
     }).catchError((error) {
       print('[getCurrentPosition] ERROR: $error');
@@ -213,9 +212,8 @@ class _HelloWorldPageState extends State<HelloWorldPage> {
   void _onAuthorization(bg.AuthorizationEvent event) async {
     print('[${bg.Event.AUTHORIZATION}] = $event');
 
-    bg.BackgroundGeolocation.setConfig(bg.Config(
-      url: ENV.TRACKER_HOST + '/api/locations'
-    ));
+    bg.BackgroundGeolocation.setConfig(
+        bg.Config(url: ENV.TRACKER_HOST + '/api/locations'));
   }
 
   void _onProviderChange(bg.ProviderChangeEvent event) {
@@ -234,44 +232,38 @@ class _HelloWorldPageState extends State<HelloWorldPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-          leading: IconButton(
-              icon: Icon(Icons.home, color: Colors.black),
-              onPressed: _onClickHome
-          ),
-          title: const Text('BG Geo'),
-          brightness: Brightness.light,
-          actions: <Widget>[
-            Switch(
-                value: _enabled,
-                onChanged: _onClickEnable
-            ),
-          ],
-          backgroundColor: Theme.of(context).bottomAppBarColor,
+        leading: IconButton(
+            icon: Icon(Icons.home, color: Colors.black),
+            onPressed: _onClickHome),
+        title: const Text('BG Geo'),
+        brightness: Brightness.light,
+        actions: <Widget>[
+          Switch(value: _enabled, onChanged: _onClickEnable),
+        ],
+        backgroundColor: Theme.of(context).bottomAppBarColor,
       ),
-      body: SingleChildScrollView(
-          child: Text('$_content')
-      ),
+      body: SingleChildScrollView(child: Text('$_content')),
       bottomNavigationBar: BottomAppBar(
-          child: Container(
-              padding: const EdgeInsets.only(left: 5.0, right: 5.0),
-              child: Row(
-                  mainAxisSize: MainAxisSize.max,
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: <Widget>[
-                    IconButton(
-                      icon: Icon(Icons.gps_fixed),
-                      onPressed: _onClickGetCurrentPosition,
-                    ),
-                    Text('$_motionActivity · $_odometer km'),
-                    MaterialButton(
-                        minWidth: 50.0,
-                        child: Icon((_isMoving) ? Icons.pause : Icons.play_arrow, color: Colors.white),
-                        color: (_isMoving) ? Colors.red : Colors.green,
-                        onPressed: _onClickChangePace
-                    )
-                  ]
-              )
-          )
+        child: Container(
+          padding: const EdgeInsets.only(left: 5.0, right: 5.0),
+          child: Row(
+            mainAxisSize: MainAxisSize.max,
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: <Widget>[
+              IconButton(
+                icon: Icon(Icons.gps_fixed),
+                onPressed: _onClickGetCurrentPosition,
+              ),
+              Text('$_motionActivity · $_odometer km'),
+              MaterialButton(
+                  minWidth: 50.0,
+                  child: Icon((_isMoving) ? Icons.pause : Icons.play_arrow,
+                      color: Colors.white),
+                  color: (_isMoving) ? Colors.red : Colors.green,
+                  onPressed: _onClickChangePace)
+            ],
+          ),
+        ),
       ),
     );
   }
